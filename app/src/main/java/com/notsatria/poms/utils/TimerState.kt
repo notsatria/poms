@@ -6,8 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 class TimerState(
-    private val workTime: Long,
-    private val breakTime: Long,
+    val workTime: Long = 25 * 60 * 1000,
+    val breakTime: Long = 30 * 1000L,
     private val tickInterval: Long = 100L
 ) {
     var currentTime by mutableLongStateOf(workTime)

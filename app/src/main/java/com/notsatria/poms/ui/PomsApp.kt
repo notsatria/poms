@@ -25,12 +25,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notsatria.poms.ui.components.PomsTimer
 import com.notsatria.poms.ui.theme.Blue
 import com.notsatria.poms.ui.theme.Grey
@@ -38,17 +40,14 @@ import com.notsatria.poms.ui.theme.LightGrey
 import com.notsatria.poms.ui.theme.PomsTheme
 import com.notsatria.poms.ui.theme.Red
 import com.notsatria.poms.utils.PomoState
-import com.notsatria.poms.utils.TimerState
 import com.notsatria.poms.utils.formatTimeToMinuteAndSecond
 import com.notsatria.poms.utils.formatTimeToMinuteOrSecond
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PomsApp(modifier: Modifier = Modifier) {
-    val workTime = 60 * 1000L // 60 sec
-    val breakTime = 30 * 1000L // 30 sec
-    val timerState = remember { TimerState(workTime, breakTime) }
+fun PomsApp(modifier: Modifier = Modifier, viewModel: PomsViewModel = viewModel()) {
+    val timerState by viewModel.timerState.collectAsState()
     LaunchedEffect(timerState.isRunning) {
         delay(100L)
         while (timerState.isRunning) {
@@ -69,7 +68,7 @@ fun PomsApp(modifier: Modifier = Modifier) {
             PomsTimer(
                 modifier = Modifier
                     .size(300.dp),
-                progress = if (!timerState.isRunning && timerState.currentTime == workTime) 0.001f else timerState.progress,
+                progress = if (!timerState.isRunning && timerState.currentTime == timerState.workTime) 0.001f else timerState.progress,
                 timerText = formatTimeToMinuteAndSecond(timerState.currentTime / 1000L),
                 progressColor = if (timerState.currentState == PomoState.WORK) Red else Blue
             )
@@ -78,12 +77,12 @@ fun PomsApp(modifier: Modifier = Modifier) {
                 text = if (timerState.currentState == PomoState.WORK) {
                     "Stay focus for ${
                         formatTimeToMinuteOrSecond(
-                            workTime
+                            timerState.workTime
                         )
                     }"
                 } else {
                     "Take a break for ${
-                        formatTimeToMinuteOrSecond(breakTime)
+                        formatTimeToMinuteOrSecond(timerState.breakTime)
                     }"
                 },
                 style = MaterialTheme.typography.bodyLarge

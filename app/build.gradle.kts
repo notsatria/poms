@@ -69,4 +69,7 @@ dependencies {
 
     // Compose Icon
     implementation(libs.androidx.material.icons.extended)
+
+    // Compose lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }
