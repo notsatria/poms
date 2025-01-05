@@ -6,17 +6,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 class TimerState(
-    private val totalTime: Long,
+    private val workTime: Long,
+    private val breakTime: Long,
     private val tickInterval: Long = 100L
 ) {
-    var currentTime by mutableLongStateOf(totalTime)
+    var currentTime by mutableLongStateOf(workTime)
         private set
 
     var isRunning by mutableStateOf(false)
         private set
 
+    var currentState by mutableStateOf(PomoState.WORK)
+        private set
+
     val progress: Float
-        get() = (totalTime - currentTime).toFloat() / totalTime
+        get() = when (currentState) {
+            PomoState.WORK -> (workTime - currentTime).toFloat() / workTime
+            PomoState.BREAK -> (breakTime - currentTime).toFloat() / breakTime
+        }
 
     fun start() {
         if (currentTime <= 0L) reset()
@@ -28,18 +35,33 @@ class TimerState(
     }
 
     fun stop() {
-        currentTime = 0L
         isRunning = false
+        currentTime = 0L
+        switchState()
     }
 
     fun reset() {
-        currentTime = totalTime
+        currentState = PomoState.WORK
+        currentTime = workTime
         isRunning = false
     }
 
     fun tick() {
-        if (isRunning && currentTime > 0L) {
-            currentTime -= tickInterval
+        if (isRunning) {
+            if (currentTime > 0L) {
+                currentTime -= tickInterval
+            } else {
+                switchState()
+            }
         }
     }
+
+    private fun switchState() {
+        currentState = if (currentState == PomoState.WORK) PomoState.BREAK else PomoState.WORK
+        currentTime = if (currentState == PomoState.WORK) workTime else breakTime
+    }
+}
+
+enum class PomoState {
+    WORK, BREAK
 }

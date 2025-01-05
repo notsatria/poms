@@ -32,19 +32,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.notsatria.poms.ui.components.PomsTimer
+import com.notsatria.poms.ui.theme.Blue
 import com.notsatria.poms.ui.theme.Grey
 import com.notsatria.poms.ui.theme.LightGrey
 import com.notsatria.poms.ui.theme.PomsTheme
 import com.notsatria.poms.ui.theme.Red
+import com.notsatria.poms.utils.PomoState
 import com.notsatria.poms.utils.TimerState
-import com.notsatria.poms.utils.formatTime
+import com.notsatria.poms.utils.formatTimeToMinuteAndSecond
+import com.notsatria.poms.utils.formatTimeToMinuteOrSecond
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PomsApp(modifier: Modifier = Modifier) {
-    val totalTime = 60 * 1000L // 60 sec
-    val timerState = remember { TimerState(totalTime) }
+    val workTime = 60 * 1000L // 60 sec
+    val breakTime = 30 * 1000L // 30 sec
+    val timerState = remember { TimerState(workTime, breakTime) }
     LaunchedEffect(timerState.isRunning) {
         delay(100L)
         while (timerState.isRunning) {
@@ -65,13 +69,23 @@ fun PomsApp(modifier: Modifier = Modifier) {
             PomsTimer(
                 modifier = Modifier
                     .size(300.dp),
-                progress = if (!timerState.isRunning && timerState.currentTime == totalTime) 0.001f else timerState.progress,
-                timerText = formatTime(timerState.currentTime / 1000L),
-                progressColor = Red
+                progress = if (!timerState.isRunning && timerState.currentTime == workTime) 0.001f else timerState.progress,
+                timerText = formatTimeToMinuteAndSecond(timerState.currentTime / 1000L),
+                progressColor = if (timerState.currentState == PomoState.WORK) Red else Blue
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Stay focus for ${totalTime / 60 / 1000L} minutes",
+                text = if (timerState.currentState == PomoState.WORK) {
+                    "Stay focus for ${
+                        formatTimeToMinuteOrSecond(
+                            workTime
+                        )
+                    }"
+                } else {
+                    "Take a break for ${
+                        formatTimeToMinuteOrSecond(breakTime)
+                    }"
+                },
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(20.dp))
