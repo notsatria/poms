@@ -15,11 +15,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,7 +59,13 @@ fun PomsApp(modifier: Modifier = Modifier, viewModel: PomsViewModel = viewModel(
         }
     }
     Scaffold(modifier,
-        topBar = { CenterAlignedTopAppBar(title = { Text(text = "Pomodoro Timer") }) }
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text(text = "Pomodoro Timer") }, actions = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Setting")
+                }
+            })
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -72,7 +80,10 @@ fun PomsApp(modifier: Modifier = Modifier, viewModel: PomsViewModel = viewModel(
                     .size(300.dp),
                 progress = if (!timerState.isRunning && timerState.currentTime == timerState.workTime) 0.001f else timerState.progress,
                 timerText = formatTimeToMinuteAndSecond(timerState.currentTime / 1000L),
-                progressColor = animateColorAsState(targetValue = timerState.color, label = "").value
+                progressColor = animateColorAsState(
+                    targetValue = timerState.color,
+                    label = ""
+                ).value
             )
             Spacer(modifier = Modifier.height(16.dp))
             StepIndicator(
@@ -95,7 +106,7 @@ fun PomsApp(modifier: Modifier = Modifier, viewModel: PomsViewModel = viewModel(
                 },
                 style = MaterialTheme.typography.bodyLarge
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
