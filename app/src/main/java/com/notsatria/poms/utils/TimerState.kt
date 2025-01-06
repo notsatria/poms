@@ -1,9 +1,12 @@
 package com.notsatria.poms.utils
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.notsatria.poms.ui.theme.Blue
+import com.notsatria.poms.ui.theme.Red
 
 class TimerState(
     val workTime: Long = 25 * 60 * 1000,
@@ -17,6 +20,14 @@ class TimerState(
         private set
 
     var currentState by mutableStateOf(PomoState.WORK)
+        private set
+
+    val steps = 3
+
+    var currentStep by mutableIntStateOf(0)
+        private set
+
+    var color by mutableStateOf(Red)
         private set
 
     val progress: Float
@@ -41,8 +52,7 @@ class TimerState(
     }
 
     fun reset() {
-        currentState = PomoState.WORK
-        currentTime = workTime
+        currentTime = if (currentState == PomoState.WORK) workTime else breakTime
         isRunning = false
     }
 
@@ -51,14 +61,31 @@ class TimerState(
             if (currentTime > 0L) {
                 currentTime -= tickInterval
             } else {
-                switchState()
+                if (currentStep >= steps && currentState == PomoState.WORK) resetAllOnStepDone()
+                else switchState()
             }
         }
+    }
+
+    private fun resetAllOnStepDone() {
+        currentState = PomoState.WORK
+        currentStep = 0
+        isRunning = false
+        currentTime = workTime
+        color = Red
     }
 
     private fun switchState() {
         currentState = if (currentState == PomoState.WORK) PomoState.BREAK else PomoState.WORK
         currentTime = if (currentState == PomoState.WORK) workTime else breakTime
+        color = if (currentState == PomoState.WORK) Red else Blue
+
+        if (currentState == PomoState.WORK) addStep()
+    }
+
+    private fun addStep() {
+        if (currentStep < steps)
+            currentStep += 1
     }
 }
 

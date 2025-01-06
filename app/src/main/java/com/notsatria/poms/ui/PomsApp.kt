@@ -1,5 +1,6 @@
 package com.notsatria.poms.ui
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.notsatria.poms.ui.components.PomsTimer
-import com.notsatria.poms.ui.theme.Blue
+import com.notsatria.poms.ui.components.StepIndicator
 import com.notsatria.poms.ui.theme.Grey
 import com.notsatria.poms.ui.theme.LightGrey
 import com.notsatria.poms.ui.theme.PomsTheme
@@ -65,12 +66,19 @@ fun PomsApp(modifier: Modifier = Modifier, viewModel: PomsViewModel = viewModel(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
+
             PomsTimer(
                 modifier = Modifier
                     .size(300.dp),
                 progress = if (!timerState.isRunning && timerState.currentTime == timerState.workTime) 0.001f else timerState.progress,
                 timerText = formatTimeToMinuteAndSecond(timerState.currentTime / 1000L),
-                progressColor = if (timerState.currentState == PomoState.WORK) Red else Blue
+                progressColor = animateColorAsState(targetValue = timerState.color, label = "").value
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            StepIndicator(
+                dotCount = timerState.steps,
+                currentStep = timerState.currentStep,
+                dotColor = timerState.color
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
