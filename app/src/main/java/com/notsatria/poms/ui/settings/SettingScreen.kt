@@ -10,8 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Label
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -23,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,26 +36,37 @@ import com.notsatria.poms.ui.theme.PomsTheme
 import kotlin.math.roundToInt
 
 @Composable
-fun PomsSettingRoute() {
-    val workingSessionSliderPosition by remember {
-        mutableFloatStateOf(1f)
+fun PomsSettingRoute(navigateBack: () -> Unit) {
+    var workingSessionSliderPosition by remember {
+        mutableFloatStateOf(4f)
     }
     val interactionSource = remember {
         MutableInteractionSource()
     }
-    PomsSettingScreen(
-        uiState = PomsSettingUiState(
+    SettingScreen(
+        uiState = SettingUiState(
             sliderPosition = workingSessionSliderPosition,
             interactionSource = interactionSource
-        )
+        ),
+        navigateBack = navigateBack,
+        onSliderPositionChange = { workingSessionSliderPosition = it }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PomsSettingScreen(modifier: Modifier = Modifier, uiState: PomsSettingUiState) {
+fun SettingScreen(
+    modifier: Modifier = Modifier,
+    uiState: SettingUiState,
+    navigateBack: () -> Unit,
+    onSliderPositionChange: (Float) -> Unit
+) {
     Scaffold(modifier, topBar = {
-        TopAppBar(title = { Text(text = "Set Pomodoro") })
+        TopAppBar(title = { Text(text = "Set Pomodoro") }, navigationIcon = {
+            IconButton(onClick = navigateBack) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+        })
     }) { innerPadding ->
         Column(
             modifier = Modifier
@@ -78,7 +94,7 @@ fun PomsSettingScreen(modifier: Modifier = Modifier, uiState: PomsSettingUiState
             Spacer(modifier = Modifier.height(8.dp))
             Slider(
                 value = uiState.sliderPosition,
-                onValueChange = { uiState.sliderPosition = it },
+                onValueChange = onSliderPositionChange,
                 valueRange = 1f..8f,
                 steps = 6,
                 interactionSource = uiState.interactionSource,
@@ -116,8 +132,8 @@ fun PomsSettingScreen(modifier: Modifier = Modifier, uiState: PomsSettingUiState
     }
 }
 
-data class PomsSettingUiState(
-    var sliderPosition: Float = 1f,
+data class SettingUiState(
+    val sliderPosition: Float = 1f,
     val interactionSource: MutableInteractionSource = MutableInteractionSource(),
 )
 
@@ -125,6 +141,6 @@ data class PomsSettingUiState(
 @Composable
 fun PomsSettingScreenPreview() {
     PomsTheme {
-        PomsSettingScreen(uiState = PomsSettingUiState())
+        SettingScreen(uiState = SettingUiState(), navigateBack = {}, onSliderPositionChange = {})
     }
 }
