@@ -24,6 +24,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -31,14 +32,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.notsatria.poms.ui.components.TimeTextField
 import com.notsatria.poms.ui.theme.PomsTheme
 import kotlin.math.roundToInt
 
 @Composable
-fun PomsSettingRoute(navigateBack: () -> Unit) {
+fun PomsSettingRoute(navigateBack: () -> Unit, viewModel: SettingViewModel = hiltViewModel()) {
+    val timerState by viewModel.timerState.collectAsState()
     var workingSessionSliderPosition by remember {
-        mutableFloatStateOf(4f)
+        mutableFloatStateOf(timerState.workingSession.toFloat())
     }
     val interactionSource = remember {
         MutableInteractionSource()
@@ -46,10 +49,18 @@ fun PomsSettingRoute(navigateBack: () -> Unit) {
     SettingScreen(
         uiState = SettingUiState(
             sliderPosition = workingSessionSliderPosition,
-            interactionSource = interactionSource
+            interactionSource = interactionSource,
+            workingTime = timerState.workTimeMinutes,
+            breakTime = timerState.breakTimeMinutes
         ),
         navigateBack = navigateBack,
-        onSliderPositionChange = { workingSessionSliderPosition = it }
+        onSliderPositionChange = {
+            workingSessionSliderPosition = it
+            viewModel.updateWorkingSessionState(it.toInt())
+        },
+        onWorkingTimeChange = { viewModel.updateWorkTimeState(it.toInt()) },
+        onBreakTimeChange = { viewModel.updateBreakTimeState(it.toInt()) },
+        onSaveClicked = { viewModel.updateSettings() }
     )
 }
 
@@ -58,8 +69,11 @@ fun PomsSettingRoute(navigateBack: () -> Unit) {
 fun SettingScreen(
     modifier: Modifier = Modifier,
     uiState: SettingUiState,
-    navigateBack: () -> Unit,
-    onSliderPositionChange: (Float) -> Unit
+    navigateBack: () -> Unit = {},
+    onSliderPositionChange: (Float) -> Unit = {},
+    onWorkingTimeChange: (String) -> Unit = {},
+    onBreakTimeChange: (String) -> Unit = {},
+    onSaveClicked: () -> Unit = {}
 ) {
     Scaffold(modifier, topBar = {
         TopAppBar(title = { Text(text = "Set Pomodoro") }, navigationIcon = {
@@ -78,15 +92,15 @@ fun SettingScreen(
                 TimeTextField(
                     modifier = Modifier.weight(1f),
                     labelText = "Working Time",
-                    value = "25",
-                    onValueChange = { },
+                    value = uiState.workingTime.toString(),
+                    onValueChange = onWorkingTimeChange,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 TimeTextField(
                     modifier = Modifier.weight(1f),
                     labelText = "Break Time",
-                    value = "5",
-                    onValueChange = { },
+                    value = uiState.breakTime.toString(),
+                    onValueChange = onBreakTimeChange,
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
@@ -125,7 +139,7 @@ fun SettingScreen(
                 }
             )
             Spacer(modifier = Modifier.height(40.dp))
-            Button(modifier = Modifier.fillMaxWidth(), onClick = { }) {
+            Button(modifier = Modifier.fillMaxWidth(), onClick = onSaveClicked) {
                 Text(text = "Save changes")
             }
         }
@@ -135,12 +149,18 @@ fun SettingScreen(
 data class SettingUiState(
     val sliderPosition: Float = 1f,
     val interactionSource: MutableInteractionSource = MutableInteractionSource(),
+    val workingTime: Int,
+    val breakTime: Int
 )
 
 @Preview
 @Composable
 fun PomsSettingScreenPreview() {
     PomsTheme {
-        SettingScreen(uiState = SettingUiState(), navigateBack = {}, onSliderPositionChange = {})
+        SettingScreen(
+            uiState = SettingUiState(workingTime = 25, breakTime = 5),
+            navigateBack = {},
+            onSliderPositionChange = {}
+        )
     }
 }

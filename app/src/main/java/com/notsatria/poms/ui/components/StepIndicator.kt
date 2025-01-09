@@ -32,7 +32,7 @@ fun StepIndicator(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
     ) {
-        for (i in 0..dotCount) {
+        for (i in 1..dotCount) {
             val isActive = currentStep == i
             val color by animateColorAsState(
                 targetValue = if (isActive) dotColor else dotColor.copy(alpha = 0.3f),

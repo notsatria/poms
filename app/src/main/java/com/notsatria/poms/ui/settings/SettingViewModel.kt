@@ -1,4 +1,4 @@
-package com.notsatria.poms.ui.home
+package com.notsatria.poms.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,19 +12,17 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val settingPreference: SettingPreference) :
+class SettingViewModel @Inject constructor(private val settingPreference: SettingPreference) :
     ViewModel() {
     private val _timerState =
-        MutableStateFlow(
-            TimerState()
-        )
+        MutableStateFlow(TimerState())
     val timerState = _timerState.asStateFlow()
 
     init {
-        getPomoSettings()
+        getDefaultSetting()
     }
 
-    private fun getPomoSettings() {
+    private fun getDefaultSetting() {
         viewModelScope.launch {
             combine(
                 settingPreference.workingTime,
@@ -38,6 +36,26 @@ class HomeViewModel @Inject constructor(private val settingPreference: SettingPr
                         (workingSession ?: 4)
                     )
             }
+        }
+    }
+
+    fun updateWorkTimeState(time: Int) {
+        _timerState.value.workTimeMinutes = time
+    }
+
+    fun updateBreakTimeState(time: Int) {
+        _timerState.value.breakTimeMinutes = time
+    }
+
+    fun updateWorkingSessionState(session: Int) {
+        _timerState.value.workingSession = session
+    }
+
+    fun updateSettings() {
+        viewModelScope.launch {
+            settingPreference.saveWorkingTime(_timerState.value.workTimeMinutes)
+            settingPreference.saveBreakTime(_timerState.value.breakTimeMinutes)
+            settingPreference.saveWorkingTime(_timerState.value.workingSession)
         }
     }
 }

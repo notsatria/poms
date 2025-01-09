@@ -9,10 +9,14 @@ import com.notsatria.poms.ui.theme.Blue
 import com.notsatria.poms.ui.theme.Red
 
 class TimerState(
-    val workTime: Long = 25 * 60 * 1000,
-    val breakTime: Long = 30 * 1000L,
+    var workTimeMinutes: Int = 25,
+    var breakTimeMinutes: Int = 5,
+    var workingSession: Int = 4,
     private val tickInterval: Long = 100L
 ) {
+    private val workTime: Long = workTimeMinutes.minutesToMillis()
+    private val breakTime: Long = breakTimeMinutes.minutesToMillis()
+
     var currentTime by mutableLongStateOf(workTime)
         private set
 
@@ -22,9 +26,7 @@ class TimerState(
     var currentState by mutableStateOf(PomoState.WORK)
         private set
 
-    val steps = 3
-
-    var currentStep by mutableIntStateOf(0)
+    var currentWorkSession by mutableIntStateOf(1)
         private set
 
     var color by mutableStateOf(Red)
@@ -61,7 +63,7 @@ class TimerState(
             if (currentTime > 0L) {
                 currentTime -= tickInterval
             } else {
-                if (currentStep >= steps && currentState == PomoState.WORK) resetAllOnStepDone()
+                if (currentWorkSession >= workingSession && currentState == PomoState.WORK) resetAllOnStepDone()
                 else switchState()
             }
         }
@@ -69,7 +71,7 @@ class TimerState(
 
     private fun resetAllOnStepDone() {
         currentState = PomoState.WORK
-        currentStep = 0
+        currentWorkSession = 1
         isRunning = false
         currentTime = workTime
         color = Red
@@ -84,8 +86,8 @@ class TimerState(
     }
 
     private fun addStep() {
-        if (currentStep < steps)
-            currentStep += 1
+        if (currentWorkSession < workingSession)
+            currentWorkSession += 1
     }
 }
 

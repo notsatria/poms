@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.notsatria.poms.ui.components.PomsTimer
 import com.notsatria.poms.ui.components.StepIndicator
 import com.notsatria.poms.ui.theme.Grey
@@ -46,12 +46,13 @@ import com.notsatria.poms.utils.PomoState
 import com.notsatria.poms.utils.TimerState
 import com.notsatria.poms.utils.formatTimeToMinuteAndSecond
 import com.notsatria.poms.utils.formatTimeToMinuteOrSecond
+import com.notsatria.poms.utils.minutesToMillis
 import kotlinx.coroutines.delay
 
 @Composable
 fun HomeRoute(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
     navigateToSettingScreen: () -> Unit
 ) {
     val timerState by viewModel.timerState.collectAsState()
@@ -68,15 +69,13 @@ fun HomeRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen: () -> Unit) {
-    Scaffold(modifier,
-        topBar = {
-            CenterAlignedTopAppBar(title = { Text(text = "Pomodoro Timer") }, actions = {
-                IconButton(onClick = navigateToSettingScreen) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Setting")
-                }
-            })
-        }
-    ) { innerPadding ->
+    Scaffold(modifier, topBar = {
+        CenterAlignedTopAppBar(title = { Text(text = "Pomodoro Timer") }, actions = {
+            IconButton(onClick = navigateToSettingScreen) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = "Setting")
+            }
+        })
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -86,19 +85,17 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
             Spacer(modifier = Modifier.height(20.dp))
 
             PomsTimer(
-                modifier = Modifier
-                    .size(300.dp),
-                progress = if (!uiState.timerState.isRunning && uiState.timerState.currentTime == uiState.timerState.workTime) 0.001f else uiState.timerState.progress,
+                modifier = Modifier.size(300.dp),
+                progress = if (!uiState.timerState.isRunning && uiState.timerState.currentTime == uiState.timerState.workTimeMinutes.minutesToMillis()) 0.001f else uiState.timerState.progress,
                 timerText = formatTimeToMinuteAndSecond(uiState.timerState.currentTime / 1000L),
                 progressColor = animateColorAsState(
-                    targetValue = uiState.timerState.color,
-                    label = ""
+                    targetValue = uiState.timerState.color, label = ""
                 ).value
             )
             Spacer(modifier = Modifier.height(16.dp))
             StepIndicator(
-                dotCount = uiState.timerState.steps,
-                currentStep = uiState.timerState.currentStep,
+                dotCount = uiState.timerState.workingSession,
+                currentStep = uiState.timerState.currentWorkSession,
                 dotColor = uiState.timerState.color
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -106,15 +103,14 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
                 text = if (uiState.timerState.currentState == PomoState.WORK) {
                     "Stay focus for ${
                         formatTimeToMinuteOrSecond(
-                            uiState.timerState.workTime
+                            uiState.timerState.workTimeMinutes.minutesToMillis()
                         )
                     }"
                 } else {
                     "Take a break for ${
-                        formatTimeToMinuteOrSecond(uiState.timerState.breakTime)
+                        formatTimeToMinuteOrSecond(uiState.timerState.breakTimeMinutes.minutesToMillis())
                     }"
-                },
-                style = MaterialTheme.typography.bodyLarge
+                }, style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(32.dp))
             Row(
@@ -166,6 +162,12 @@ data class HomeUiState(
 @Composable
 fun HomeScreenPreview() {
     PomsTheme {
-        HomeScreen(Modifier, HomeUiState(TimerState()), navigateToSettingScreen = {})
+        HomeScreen(Modifier, HomeUiState(
+            TimerState(
+                workTimeMinutes = 25,
+                breakTimeMinutes = 5,
+                workingSession = 4
+            )
+        ), navigateToSettingScreen = {})
     }
 }

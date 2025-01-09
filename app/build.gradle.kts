@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.devtoolsKsp)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -75,4 +77,18 @@ dependencies {
 
     // Compose Navigation
     implementation(libs.androidx.navigation.compose)
+
+    // Room
+    implementation(libs.room)
+    ksp(libs.roomCompiler)
+    implementation(libs.roomKtx)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    // Hilt Compose
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Data Store
+    implementation(libs.androidx.datastore.preferences)
 }
