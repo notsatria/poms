@@ -24,6 +24,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -35,20 +36,26 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.notsatria.poms.ui.components.TimeTextField
 import com.notsatria.poms.ui.theme.PomsTheme
+import timber.log.Timber.Forest.i
 import kotlin.math.roundToInt
 
 @Composable
 fun PomsSettingRoute(navigateBack: () -> Unit, viewModel: SettingViewModel = hiltViewModel()) {
     val timerState by viewModel.timerState.collectAsState()
+    i("Timerstate: ${timerState.workTimeMinutes}, ${timerState.breakTimeMinutes}, ${timerState.workingSession}")
+    val isUpdated by viewModel.isUpdated.collectAsState()
     var workingSessionSliderPosition by remember {
         mutableFloatStateOf(timerState.workingSession.toFloat())
     }
     val interactionSource = remember {
         MutableInteractionSource()
     }
+    LaunchedEffect(key1 = isUpdated) {
+        if (isUpdated) navigateBack()
+    }
     SettingScreen(
         uiState = SettingUiState(
-            sliderPosition = workingSessionSliderPosition,
+            sliderPosition = timerState.workingSession.toFloat(),
             interactionSource = interactionSource,
             workingTime = timerState.workTimeMinutes,
             breakTime = timerState.breakTimeMinutes
@@ -58,8 +65,8 @@ fun PomsSettingRoute(navigateBack: () -> Unit, viewModel: SettingViewModel = hil
             workingSessionSliderPosition = it
             viewModel.updateWorkingSessionState(it.toInt())
         },
-        onWorkingTimeChange = { viewModel.updateWorkTimeState(it.toInt()) },
-        onBreakTimeChange = { viewModel.updateBreakTimeState(it.toInt()) },
+        onWorkingTimeChange = { viewModel.updateWorkTimeState(if (it.isEmpty()) 1 else it.toInt()) },
+        onBreakTimeChange = { viewModel.updateBreakTimeState(if (it.isEmpty()) 1 else it.toInt()) },
         onSaveClicked = { viewModel.updateSettings() }
     )
 }
@@ -112,9 +119,6 @@ fun SettingScreen(
                 valueRange = 1f..8f,
                 steps = 6,
                 interactionSource = uiState.interactionSource,
-                onValueChangeFinished = {
-
-                },
                 thumb = {
                     Label(
                         label = {

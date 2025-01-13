@@ -1,9 +1,14 @@
 package com.notsatria.poms.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -28,8 +33,24 @@ fun PomsTimer(
     strokeWidth: Float = 45f,
     textMeasurer: TextMeasurer = rememberTextMeasurer(),
     progressColor: Color,
-    timerTextStyle: TextStyle = TextStyle(fontSize = 48.sp)
+    timerTextStyle: TextStyle = TextStyle(fontSize = 48.sp),
+    isBackwardAnimation: Boolean = false
 ) {
+    val animatedProgress = remember { Animatable(initialValue = 0f) }
+    LaunchedEffect(key1 = progress) {
+        if (isBackwardAnimation && progress == 0f) {
+            animatedProgress.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+            )
+        } else {
+            animatedProgress.animateTo(
+                targetValue = progress,
+                animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+            )
+        }
+    }
+
     Canvas(
         modifier = modifier
             .aspectRatio(1f)
@@ -51,7 +72,7 @@ fun PomsTimer(
         drawArc(
             color = progressColor,
             startAngle = -90f,
-            sweepAngle = progress * 360f,
+            sweepAngle = animatedProgress.value * 360f,
             useCenter = false,
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
             size = Size(canvasSize, canvasSize),

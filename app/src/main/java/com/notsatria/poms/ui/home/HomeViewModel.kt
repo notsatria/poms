@@ -7,7 +7,7 @@ import com.notsatria.poms.utils.TimerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,24 +20,12 @@ class HomeViewModel @Inject constructor(private val settingPreference: SettingPr
         )
     val timerState = _timerState.asStateFlow()
 
-    init {
-        getPomoSettings()
-    }
-
-    private fun getPomoSettings() {
+    fun getPomoSettings() {
         viewModelScope.launch {
-            combine(
-                settingPreference.workingTime,
-                settingPreference.breakTime,
-                settingPreference.workingSession
-            ) { workingTime, breakTime, workingSession ->
-                _timerState.value =
-                    TimerState(
-                        (workingTime ?: 25),
-                        (breakTime ?: 5),
-                        (workingSession ?: 4)
-                    )
-            }
+            val breakTime = settingPreference.breakTime.first() ?: 5
+            val workTime = settingPreference.workingTime.first() ?: 25
+            val workingSession = settingPreference.workingSession.first() ?: 4
+            _timerState.value = TimerState(workTime, breakTime, workingSession)
         }
     }
 }
