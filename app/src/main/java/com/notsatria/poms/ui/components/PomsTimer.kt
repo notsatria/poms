@@ -46,7 +46,7 @@ fun PomsTimer(
         } else {
             animatedProgress.animateTo(
                 targetValue = progress,
-                animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+                animationSpec = tween(durationMillis = 200, easing = LinearEasing)
             )
         }
     }

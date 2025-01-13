@@ -1,6 +1,9 @@
 package com.notsatria.poms.ui.home
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -30,10 +34,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.notsatria.poms.ui.components.PomsTimer
@@ -66,7 +72,17 @@ fun HomeRoute(
     LaunchedEffect(Unit) {
         viewModel.getPomoSettings()
     }
-    HomeScreen(modifier = modifier, uiState = HomeUiState(timerState), navigateToSettingScreen)
+    val radius = if (!timerState.isRunning) {
+        36.dp
+    } else {
+        12.dp
+    }
+    val playButtonCornerRadius = animateDpAsState(targetValue = radius, label = "")
+    HomeScreen(
+        modifier = modifier,
+        uiState = HomeUiState(timerState, playButtonCornerRadius.value),
+        navigateToSettingScreen
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,7 +152,8 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
                         if (uiState.timerState.isRunning) uiState.timerState.pause() else uiState.timerState.start()
                     },
                     colors = IconButtonDefaults.filledIconButtonColors()
-                        .copy(containerColor = Red, contentColor = Color.White)
+                        .copy(containerColor = Red, contentColor = Color.White),
+                    shape = RoundedCornerShape(uiState.playButtonCornerRadius)
                 ) {
                     Icon(
                         imageVector = if (uiState.timerState.isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -159,6 +176,7 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
 
 data class HomeUiState(
     val timerState: TimerState,
+    val playButtonCornerRadius: Dp,
 )
 
 @Preview
@@ -170,7 +188,8 @@ fun HomeScreenPreview() {
                 workTimeMinutes = 25,
                 breakTimeMinutes = 5,
                 workingSession = 4
-            )
+            ),
+            20.dp,
         ), navigateToSettingScreen = {})
     }
 }
