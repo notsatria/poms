@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import com.notsatria.poms.ui.theme.Blue
 import com.notsatria.poms.ui.theme.Red
 
-class TimerState(
+data class TimerState(
     var workTimeMinutes: Int = 25,
     var breakTimeMinutes: Int = 5,
     var workingSession: Int = 4,

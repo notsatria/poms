@@ -63,6 +63,9 @@ fun HomeRoute(
             timerState.tick()
         }
     }
+    LaunchedEffect(Unit) {
+        viewModel.getPomoSettings()
+    }
     HomeScreen(modifier = modifier, uiState = HomeUiState(timerState), navigateToSettingScreen)
 }
 
@@ -83,14 +86,14 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
-
             PomsTimer(
                 modifier = Modifier.size(300.dp),
                 progress = if (!uiState.timerState.isRunning && uiState.timerState.currentTime == uiState.timerState.workTimeMinutes.minutesToMillis()) 0.001f else uiState.timerState.progress,
                 timerText = formatTimeToMinuteAndSecond(uiState.timerState.currentTime / 1000L),
                 progressColor = animateColorAsState(
                     targetValue = uiState.timerState.color, label = ""
-                ).value
+                ).value,
+                isBackwardAnimation = !uiState.timerState.isRunning
             )
             Spacer(modifier = Modifier.height(16.dp))
             StepIndicator(
