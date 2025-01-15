@@ -1,9 +1,13 @@
 package com.notsatria.poms.ui.home
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,20 +38,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.notsatria.poms.R
 import com.notsatria.poms.ui.components.PomsTimer
 import com.notsatria.poms.ui.components.StepIndicator
 import com.notsatria.poms.ui.theme.Grey
 import com.notsatria.poms.ui.theme.LightGrey
 import com.notsatria.poms.ui.theme.PomsTheme
 import com.notsatria.poms.ui.theme.Red
+import com.notsatria.poms.utils.CHANNEL_ID
+import com.notsatria.poms.utils.CHANNEL_NAME
+import com.notsatria.poms.utils.NOTIFICATION_ID
 import com.notsatria.poms.utils.PomoState
 import com.notsatria.poms.utils.TimerState
 import com.notsatria.poms.utils.formatTimeToMinuteAndSecond
@@ -62,6 +73,7 @@ fun HomeRoute(
     navigateToSettingScreen: () -> Unit
 ) {
     val timerState by viewModel.timerState.collectAsState()
+    val context = LocalContext.current
     LaunchedEffect(timerState.isRunning) {
         delay(100L)
         while (timerState.isRunning) {
@@ -71,6 +83,16 @@ fun HomeRoute(
     }
     LaunchedEffect(Unit) {
         viewModel.getPomoSettings()
+    }
+    LaunchedEffect(timerState.progress == 1f) {
+       if (ActivityCompat.checkSelfPermission(
+               context,
+               Manifest.permission.POST_NOTIFICATIONS
+           ) != PackageManager.PERMISSION_GRANTED
+       ) {
+           return@LaunchedEffect
+       }
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notificationBuilder(context).build())
     }
     val radius = if (!timerState.isRunning) {
         36.dp
@@ -174,22 +196,30 @@ fun HomeScreen(modifier: Modifier, uiState: HomeUiState, navigateToSettingScreen
     }
 }
 
-data class HomeUiState(
-    val timerState: TimerState,
-    val playButtonCornerRadius: Dp,
-)
+private fun notificationBuilder(context: Context) = NotificationCompat.Builder(context, CHANNEL_ID)
+    .setSmallIcon(R.drawable.ic_timer_24dp)
+    .setContentTitle("It's time to work!")
+    .setContentText("Keep focus for 25 minutes")
+    .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    PomsTheme {
-        HomeScreen(Modifier, HomeUiState(
-            TimerState(
-                workTimeMinutes = 25,
-                breakTimeMinutes = 5,
-                workingSession = 4
-            ),
-            20.dp,
-        ), navigateToSettingScreen = {})
+
+
+    data class HomeUiState(
+        val timerState: TimerState,
+        val playButtonCornerRadius: Dp,
+    )
+
+    @Preview
+    @Composable
+    fun HomeScreenPreview() {
+        PomsTheme {
+            HomeScreen(Modifier, HomeUiState(
+                TimerState(
+                    workTimeMinutes = 25,
+                    breakTimeMinutes = 5,
+                    workingSession = 4
+                ),
+                20.dp,
+            ), navigateToSettingScreen = {})
+        }
     }
-}
