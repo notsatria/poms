@@ -23,12 +23,7 @@ class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                Toast.makeText(
-                    this@MainActivity,
-                    "Notification permission granted",
-                    Toast.LENGTH_SHORT
-                ).show()
-                createNotificationChannel()
+               // empty
             } else {
                 handlePermissions()
             }
@@ -44,16 +39,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel =
-                NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
     private fun handlePermissions() {
         when {
             ContextCompat.checkSelfPermission(
@@ -64,7 +49,6 @@ class MainActivity : ComponentActivity() {
                     "Notification permission granted",
                     Toast.LENGTH_SHORT
                 ).show()
-                createNotificationChannel()
             }
             else -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

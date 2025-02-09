@@ -12,7 +12,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val settingPreference: SettingPreference) :
+class HomeViewModel @Inject constructor(
+    private val settingPreference: SettingPreference,
+) :
     ViewModel() {
     private val _timerState =
         MutableStateFlow(
@@ -28,4 +30,22 @@ class HomeViewModel @Inject constructor(private val settingPreference: SettingPr
             _timerState.value = TimerState(workTime, breakTime, workingSession)
         }
     }
+
+    fun updateTimerState(newState: TimerState) {
+        _timerState.value = newState
+    }
+
+    fun handleAction(action: TimerAction) {
+        when (action) {
+            TimerAction.Reset -> _timerState.value.reset()
+            TimerAction.Stop -> _timerState.value.stop()
+            TimerAction.Pause -> _timerState.value.pause()
+        }
+    }
+}
+
+sealed interface TimerAction {
+    data object Reset : TimerAction
+    data object Stop : TimerAction
+    data object Pause : TimerAction
 }

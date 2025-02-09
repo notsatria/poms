@@ -1,5 +1,6 @@
 package com.notsatria.poms.utils
 
+import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -7,18 +8,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.notsatria.poms.ui.theme.Blue
 import com.notsatria.poms.ui.theme.Red
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class TimerState(
     var workTimeMinutes: Int = 25,
     var breakTimeMinutes: Int = 5,
     var workingSession: Int = 4,
     private val tickInterval: Long = 100L
-) {
+) : Parcelable{
     private val workTime: Long = workTimeMinutes.minutesToMillis()
     private val breakTime: Long = breakTimeMinutes.minutesToMillis()
 
     var currentTime by mutableLongStateOf(workTime)
-        private set
 
     var isRunning by mutableStateOf(false)
         private set
